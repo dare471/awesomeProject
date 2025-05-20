@@ -25,7 +25,7 @@ func main() {
 	r := gin.Default()
 
 	// Endpoint для создания пользователя
-	r.POST("/users", func(c *gin.Context) {
+	r.POST("/create/user", func(c *gin.Context) {
 		var req service.CreateUserRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})

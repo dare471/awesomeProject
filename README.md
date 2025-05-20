@@ -47,8 +47,10 @@ The server will start on `localhost:8080`
 - `POST /login` - Login endpoint
   - Request body: `{ "email": "string", "password": "string" }`
   - Returns JWT token on success
-
-- `GET /protected/name/:id` - Get user information (protected route)
+- `POST /registration/user`
+  - Request `{ "name": "Ryan Gosling","age": 32,"city": "Almaty","password": "dauren","email": "Ryan.gosling@example.com"}`
+  - Returns response of created user `{"message": "User created successfully","user": { "created_at": "2025-05-20T14:46:35.607489+05:00","updated_at": "2025-05-20T14:46:35.607489+05:00","id": 2,"name": "Ryan Gosling","age": 32,"city": "Almaty","email": "Ryan.gosling@example.com"}}`
+- `GET /protected/user/name/:id` - Get user information (protected route)
   - Requires JWT token in Authorization header
   - Returns user data for the specified ID
 

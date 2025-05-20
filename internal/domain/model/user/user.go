@@ -16,6 +16,12 @@ type User struct {
 	Email        string `json:"email" gorm:"size:255;uniqueIndex;not null"`
 	Token        string `json:"-"`
 	RefreshToken string `json:"refresh_token,omitempty"`
+	Role         string `json:"role" gorm:"size:255;not null"`
+	IsActive     bool   `json:"is_active" gorm:"not null"`
+	IsActive_at  time.Time `json:"is_active_at" gorm:"not null"`
+	IsVerified   bool   `json:"is_verified" gorm:"not null"`
+	IsVerified_at time.Time `json:"is_verified_at" gorm:"not null"`
+	IsDeleted    bool   `json:"is_deleted" gorm:"not null"`
 }
 
 // TableName указывает имя таблицы в базе данных
