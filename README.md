@@ -13,7 +13,8 @@ A Go web application built with Gin framework, following clean architecture prin
 │   ├── service/          # Service layer
 │   ├── repository/       # Data access layer
 │   ├── database/         # Database configuration
-│   └── usecase/          # Use case implementations
+│   ├── usecase/          # Use case implementations
+│   └── migrate/          # Migrate tables for current project
 ├── main.go               # Main application entry point
 ├── go.mod               # Go module file
 └── go.sum               # Go module checksum file
