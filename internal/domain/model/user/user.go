@@ -3,6 +3,7 @@ package user
 import (
 	"awesomeProject/internal/domain/model/common"
 	"gorm.io/gorm"
+	"time"
 )
 
 // User представляет модель пользователя
@@ -17,11 +18,11 @@ type User struct {
 	Token        string `json:"-"`
 	RefreshToken string `json:"refresh_token,omitempty"`
 	Role         string `json:"role" gorm:"size:255;not null"`
-	IsActive     bool   `json:"is_active" gorm:"not null"`
-	IsActive_at  time.Time `json:"is_active_at" gorm:"not null"`
-	IsVerified   bool   `json:"is_verified" gorm:"not null"`
-	IsVerified_at time.Time `json:"is_verified_at" gorm:"not null"`
-	IsDeleted    bool   `json:"is_deleted" gorm:"not null"`
+	IsActive     bool   `json:"is_active" gorm:"null" gorm:"default:false"`
+	IsActive_at  time.Time `json:"is_active_at" gorm:"null" gorm:"default:false"`
+	IsVerified   bool   `json:"is_verified" gorm:"null" gorm:"default:false"`
+	IsVerified_at time.Time `json:"is_verified_at" gorm:"null" gorm:"default:false"`
+	IsDeleted    bool   `json:"is_deleted" gorm:"null" gorm:"default:false"`
 }
 
 // TableName указывает имя таблицы в базе данных

@@ -1,7 +1,6 @@
 package upload
 
 import (
-	"awesomeProject/internal/domain/model/common"
 	"gorm.io/gorm"
 )
 
@@ -22,7 +21,11 @@ func (r *RepositoryImpl) Create(upload *Upload) error {
 }
 
 func (r *RepositoryImpl) FindAll() ([]Upload, error) {
-	return r.db.Find(&Upload{}).Error
+	var uploads []Upload
+	if err := r.db.Find(&uploads).Error; err != nil {
+		return nil, err
+	}
+	return uploads, nil
 }
 
 func (r *RepositoryImpl) FindById(id uint) (Upload, error) {

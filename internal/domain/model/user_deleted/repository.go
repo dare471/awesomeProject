@@ -1,7 +1,6 @@
 package user_deleted
 
 import (
-	"awesomeProject/internal/domain/model/common"
 	"gorm.io/gorm"
 )
 
@@ -29,6 +28,7 @@ func (r *RepositoryImpl) FindAll() ([]UserDeleted, error) {
 	if err := r.db.Find(&userDeleted).Error; err != nil {
 		return nil, err
 	}
+	return userDeleted, nil
 }
 
 func (r *RepositoryImpl) FindByID(id uint) (UserDeleted, error) {
@@ -36,6 +36,7 @@ func (r *RepositoryImpl) FindByID(id uint) (UserDeleted, error) {
 	if err := r.db.First(&userDeleted, id).Error; err != nil {
 		return UserDeleted{}, err
 	}
+	return userDeleted, nil
 }
 
 func (r *RepositoryImpl) Update(userDeleted *UserDeleted) error {
@@ -46,6 +47,3 @@ func (r *RepositoryImpl) Restore(id uint) error {
 	return r.db.Model(&UserDeleted{}).Where("id = ?", id).Update("is_deleted", false).Error
 }
 
-func (r *RepositoryImpl) Create(userDeleted *UserDeleted) error {
-	return r.db.Create(userDeleted).Error
-}

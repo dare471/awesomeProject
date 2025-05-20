@@ -2,7 +2,8 @@ package user_deleted
 
 import (
 	"awesomeProject/internal/domain/model/common"
-	"gorm.io/gorm"
+	"awesomeProject/internal/domain/model/user"
+	"time"
 )
 
 type UserDeleted struct {

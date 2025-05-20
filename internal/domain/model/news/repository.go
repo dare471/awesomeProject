@@ -1,7 +1,6 @@
 package news
 
 import (
-	"awesomeProject/internal/domain/model/common"
 	"gorm.io/gorm"
 )
 
