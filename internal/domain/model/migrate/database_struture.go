@@ -19,32 +19,31 @@ func Migrate() {
 	if err := database.DB.Exec("ALTER TABLE users_struct ALTER COLUMN role SET NOT NULL").Error; err != nil {
 		log.Fatalf("Failed to set role column as NOT NULL: %v", err)
 	}
-
+	var count int64
 	if err := database.DB.AutoMigrate(&user.User{}); err != nil {
 		log.Fatalf("Failed to migrate user model: %v", err)
 	}
-	MigrateUser()
+	MigrateUser(count)
 	if err := database.DB.AutoMigrate(&news.News{}); err != nil {
 		log.Fatalf("Failed to migrate news model: %v", err)
 	}
-	MigrateNews()
+	MigrateNews(count)
 	if err := database.DB.AutoMigrate(&user_deleted.UserDeleted{}); err != nil {
 		log.Fatalf("Failed to migrate user_deleted model: %v", err)
 	}
-	MigrateUserDeleted()
+	MigrateUserDeleted(count)
 	if err := database.DB.AutoMigrate(&upload.Upload{}); err != nil {
 		log.Fatalf("Failed to migrate upload model: %v", err)
 	}
-	MigrateUpload()
+	MigrateUpload(count)
 }
 
-func MigrateUser() {
+func MigrateUser(count int64) {
 	if err := database.DB.AutoMigrate(&user.User{}); err != nil {
 		log.Fatalf("Failed to migrate user model: %v", err)
 	}
-	var count int64
-	database.DB.Model(&user.User{}).Count(&count)
 	
+	database.DB.Model(&user.User{}).Count(&count)
 	if count == 0 {
 		log.Println("Creating initial admin user...")
 		
@@ -68,29 +67,63 @@ func MigrateUser() {
 	log.Println("Database models User migrated successfully")
 }
 
-func MigrateNews() {
+func MigrateNews(count int64) {
 	if err := database.DB.AutoMigrate(&news.News{}); err != nil {
 		log.Fatalf("Failed to migrate news model: %v", err)
 	}
-	var count int64
 	database.DB.Model(&news.News{}).Count(&count)
 	if count == 0 {
 		log.Println("Creating initial news...")
-		
+		news := news.News{
+			Title: "Test News",
+			Content: "This is a test news",
+			Author: "Admin",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+		if err := database.DB.Create(&news).Error; err != nil {
+			log.Printf("Failed to create news: %v", err)
+		}
 	}
 	log.Println("Database models News migrated successfully")
 }
 
-func MigrateUserDeleted() {
+func MigrateUserDeleted(count int64) {
 	if err := database.DB.AutoMigrate(&user_deleted.UserDeleted{}); err != nil {
 		log.Fatalf("Failed to migrate user_deleted model: %v", err)
+	}
+	database.DB.Model(&user_deleted.UserDeleted{}).Count(&count)
+	if count == 0 {
+		log.Println("Creating initial user_deleted...")
+		user_deleted := user_deleted.UserDeleted{
+			ID: 1,
+			UserID: 1,
+			DeletedAt: time.Now(),
+		}
+		if err := database.DB.Create(&user_deleted).Error; err != nil {
+			log.Printf("Failed to create user_deleted: %v", err)
+		}
 	}
 	log.Println("Database models UserDeleted migrated successfully")
 }
 
-func MigrateUpload() {
+func MigrateUpload(count int64) {
 	if err := database.DB.AutoMigrate(&upload.Upload{}); err != nil {
 		log.Fatalf("Failed to migrate upload model: %v", err)
+	}
+	database.DB.Model(&upload.Upload{}).Count(&count)
+	if count == 0 {
+		log.Println("Creating initial upload...")
+		upload := upload.Upload{
+			ID: 1,
+			UserID: 1,
+			File: "test.txt",
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+		}
+		if err := database.DB.Create(&upload).Error; err != nil {
+			log.Printf("Failed to create upload: %v", err)
+		}
 	}
 	log.Println("Database models Upload migrated successfully")
 }
