@@ -6,26 +6,21 @@ import (
 	"awesomeProject/internal/domain/model/news"
 	"awesomeProject/internal/domain/model/user_deleted"
 	"awesomeProject/internal/domain/model/upload"
+	"awesomeProject/internal/domain/model/role"
+	"awesomeProject/internal/domain/model/seeder"
 	"log"
-	"time"
 )
 
 func Migrate() {
-	// Сначала добавляем поле role с значением по умолчанию
-	if err := database.DB.Exec("ALTER TABLE users_struct ADD COLUMN IF NOT EXISTS role varchar(255) DEFAULT 'user'").Error; err != nil {
-		log.Fatalf("Failed to add role column: %v", err)
-	}
-	// Затем делаем поле обязательным
-	if err := database.DB.Exec("ALTER TABLE users_struct ALTER COLUMN role SET NOT NULL").Error; err != nil {
-		log.Fatalf("Failed to set role column as NOT NULL: %v", err)
-	}
 	var count int64
+	////
+	TruncateTables()
 	if err := database.DB.AutoMigrate(&user.User{}); err != nil {
 		log.Fatalf("Failed to migrate user model: %v", err)
 	}
 	MigrateUser(count)
 	////
-	if err := database.DB.Automigrate(&role.Role{}); err != nil {
+	if err := database.DB.AutoMigrate(&role.Role{}); err != nil {
 		log.Fatalf("Failed to migrate role model: %v", err)
 	}
 	MigrateRole(count)
@@ -49,48 +44,34 @@ func Migrate() {
 func MigrateUser(count int64) {
 	if err := database.DB.AutoMigrate(&user.User{}); err != nil {
 		log.Fatalf("Failed to migrate user model: %v", err)
-	}
-	
-	database.DB.Model(&user.User{}).Count(&count)
-	if count == 0 {
-		log.Println("Creating initial admin user...")
-		
-		hashedPassword, err := user.HashPassword("admin123")
-		if err != nil {
-			log.Printf("Failed to hash admin password: %v", err)
-			return
-		}
-		
-		adminUser := user.User{
-			Email:    "admin@example.com",
-			Password: hashedPassword,
-			Name:     "Admin",
-			Age:      30,
-			City:     "Moscow",
-		}
-		if err := database.DB.Create(&adminUser).Error; err != nil {
-			log.Printf("Failed to create admin user: %v", err)
-		}
-	}
+	}	
 	log.Println("Database models User migrated successfully")
+	seeder.SeedUsers(10)
 }
 ///
 func MigrateRole(count int64) {
-	if err := database.DB.AutoMigrate(&role.Role{}); err != nil {
-		log.Fatalf("Failed to migrate role model: %v", err)
+	// Полностью удаляем таблицу ролей
+	if err := database.DB.Exec("DROP TABLE IF EXISTS roles_struct CASCADE;").Error; err != nil {
+		log.Printf("Failed to drop roles table: %v", err)
 	}
+
+	// Создаем таблицу ролей заново с явным указанием типов
+	if err := database.DB.Exec(`
+		CREATE TABLE roles_struct (
+			id SERIAL PRIMARY KEY,
+			created_at TIMESTAMP WITH TIME ZONE,
+			updated_at TIMESTAMP WITH TIME ZONE,
+			deleted_at TIMESTAMP WITH TIME ZONE,
+			role_name VARCHAR(255) NOT NULL UNIQUE,
+			description TEXT NOT NULL
+		);
+	`).Error; err != nil {
+		log.Fatalf("Failed to create roles table: %v", err)
+	}
+
 	database.DB.Model(&role.Role{}).Count(&count)
-	if count == 0 {
-		log.Println("Creating initial role...")
-		role := role.Role{
-			RoleName: "admin",
-			Description: "Admin role",
-		}
-		if err := database.DB.Create(&role).Error; err != nil {
-			log.Printf("Failed to create role: %v", err)
-		}
-	}
 	log.Println("Database models Role migrated successfully")
+	seeder.SeedRoles(3)
 }
 ///
 func MigrateNews(count int64) {
@@ -98,20 +79,8 @@ func MigrateNews(count int64) {
 		log.Fatalf("Failed to migrate news model: %v", err)
 	}
 	database.DB.Model(&news.News{}).Count(&count)
-	if count == 0 {
-		log.Println("Creating initial news...")
-		news := news.News{
-			Title: "Test News",
-			Content: "This is a test news",
-			Author: "Admin",
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
-		}
-		if err := database.DB.Create(&news).Error; err != nil {
-			log.Printf("Failed to create news: %v", err)
-		}
-	}
 	log.Println("Database models News migrated successfully")
+	seeder.SeedNews(5)
 }
 ///
 func MigrateUserDeleted(count int64) {
@@ -119,18 +88,8 @@ func MigrateUserDeleted(count int64) {
 		log.Fatalf("Failed to migrate user_deleted model: %v", err)
 	}
 	database.DB.Model(&user_deleted.UserDeleted{}).Count(&count)
-	if count == 0 {
-		log.Println("Creating initial user_deleted...")
-		user_deleted := user_deleted.UserDeleted{
-			ID: 1,
-			UserID: 1,
-			DeletedAt: time.Now(),
-		}
-		if err := database.DB.Create(&user_deleted).Error; err != nil {
-			log.Printf("Failed to create user_deleted: %v", err)
-		}
-	}
 	log.Println("Database models UserDeleted migrated successfully")
+	seeder.SeedUserDeleted(3)
 }
 ///
 func MigrateUpload(count int64) {
@@ -138,21 +97,18 @@ func MigrateUpload(count int64) {
 		log.Fatalf("Failed to migrate upload model: %v", err)
 	}
 	database.DB.Model(&upload.Upload{}).Count(&count)
-	if count == 0 {
-		log.Println("Creating initial upload...")
-		upload := upload.Upload{
-			ID: 1,
-			UserID: 1,
-			Title: "Test Upload",
-			Author: "Admin",
-			Description: "This is a test upload",
-			Content: "This is a test upload",
-			Type: "text",
-			Path: "test.txt",
-		}
-		if err := database.DB.Create(&upload).Error; err != nil {
-			log.Printf("Failed to create upload: %v", err)
-		}
-	}
 	log.Println("Database models Upload migrated successfully")
+	seeder.SeedUpload(5)
 }
+
+// TruncateTables очищает все таблицы в базе данных
+func TruncateTables() {
+	log.Println("Truncating all tables...")
+
+	// Для PostgreSQL используем TRUNCATE
+	if err := database.DB.Exec("TRUNCATE TABLE users_struct, roles_struct, news_struct, users_deleted_struct, uploads_struct CASCADE;").Error; err != nil {
+		log.Printf("Failed to truncate tables: %v", err)
+	}
+	log.Println("All tables truncated successfully")
+}
+

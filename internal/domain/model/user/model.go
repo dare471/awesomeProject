@@ -9,7 +9,6 @@ import (
 // User представляет модель пользователя
 type User struct {
 	common.Base
-	ID           uint   `json:"id" gorm:"primaryKey"`
 	Name         string `json:"name" gorm:"size:255;not null"`
 	Age          int    `json:"age" gorm:"not null"`
 	City         string `json:"city" gorm:"size:255;not null"`

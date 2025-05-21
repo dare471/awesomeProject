@@ -1,19 +1,19 @@
 package role
 
 import (
-	"time"
 	"gorm.io/gorm"
 	"awesomeProject/internal/domain/model/common"
+	"awesomeProject/internal/domain/model/user"
 )
 
 type Role struct {
 	common.Base
-	RoleName string `json:"role_name" gorm:"size:255;not null"`
-	User User `json:"user" gorm:"foreignKey:RoleName"`
-	Description string `json:"description" gorm:"size:255;not null"`
+	RoleName string `json:"role_name" gorm:"type:varchar(255);not null;unique"`
+	User user.User `json:"user" gorm:"foreignKey:RoleName"`
+	Description string `json:"description" gorm:"type:text;not null"`
 }
 
-func (Upload) TableName() string {
+func (Role) TableName() string {
 	return "roles_struct"
 }
 
