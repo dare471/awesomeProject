@@ -8,7 +8,10 @@ import (
 type Upload struct {
 	common.Base
 	ID          uint   `json:"id" gorm:"primaryKey"`
+	UserID      uint   `json:"user_id" gorm:"not null"`
 	Title       string `json:"title" gorm:"size:255;not null"`
+	Author      string `json:"author" gorm:"size:255;not null"`
+	File        string `json:"file" gorm:"size:255;not null"`
 	Description string `json:"description" gorm:"size:255;not null"`
 	Content     string `json:"content" gorm:"size:255;not null"`
 	Type        string `json:"type" gorm:"size:255;not null"`
