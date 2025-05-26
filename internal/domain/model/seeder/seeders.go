@@ -20,8 +20,9 @@ func SeedUsers(count int) {
 	users := make([]user.User, count)
 
 	for i := 0; i < count; i++ {
-		// Создаем нового пользователя без использования faker для ID
 		// Create a new user without using faker for ID
+		// Создаем нового пользователя без использования faker для ID
+
 		users[i] = user.User{
 			Name:       faker.Name(),
 			Age:        int(faker.RandomUnixTime() % 100),
