@@ -21,6 +21,7 @@ func SeedUsers(count int) {
 
 	for i := 0; i < count; i++ {
 		// Создаем нового пользователя без использования faker для ID
+		// Create a new user without using faker for ID
 		users[i] = user.User{
 			Name:       faker.Name(),
 			Age:        int(faker.RandomUnixTime() % 100),
@@ -32,6 +33,7 @@ func SeedUsers(count int) {
 			IsDeleted:  false,
 		}
 
+		// Set password
 		// Устанавливаем пароль
 		hashedPassword, err := user.HashPassword("password123")
 		if err != nil {
@@ -41,7 +43,9 @@ func SeedUsers(count int) {
 		users[i].Password = hashedPassword
 	}
 
+	// Create a users one by one to avoid a problems ID
 	// Создаем пользователей по одному, чтобы избежать проблем с ID
+
 	for _, u := range users {
 		if err := database.DB.Create(&u).Error; err != nil {
 			log.Printf("Failed to create user %s: %v", u.Email, err)
@@ -76,7 +80,9 @@ func SeedNews(count int) {
 	newsItems := make([]news.News, count)
 
 	for i := 0; i < count; i++ {
+		// limints length of title to 255 characters
 		// Ограничиваем все строковые поля до 255 символов
+
 		title := faker.Sentence()
 		if len(title) > 255 {
 			title = title[:255]
@@ -87,7 +93,8 @@ func SeedNews(count int) {
 			description = description[:255]
 		}
 
-		content := faker.Sentence() // Используем Sentence вместо Paragraph для ограничения длины
+		content := faker.Sentence() //eng: Use a Sentence for Paragraph to limit length //ru: Используем Sentence вместо Paragraph для ограничения длины
+
 		if len(content) > 255 {
 			content = content[:255]
 		}
@@ -97,12 +104,12 @@ func SeedNews(count int) {
 			author = author[:255]
 		}
 
-		category := faker.Word() // Используем Word для категории
+		category := faker.Word() // Used Word for Category // ru: Используем Word для категории
 		if len(category) > 255 {
 			category = category[:255]
 		}
 
-		image := fmt.Sprintf("image_%d.jpg", i+1) // Генерируем имя файла изображения
+		image := fmt.Sprintf("image_%d.jpg", i+1) // Generate a name of image file // ru: Генерируем имя файла изображения
 		if len(image) > 255 {
 			image = image[:255]
 		}
@@ -132,7 +139,7 @@ func SeedUserDeleted(count int) {
 	userDeleted := make([]user_deleted.UserDeleted, count)
 
 	for i := 0; i < count; i++ {
-		// Получаем случайное число от 1 до 100
+		// Get random number from 1 to 100 // ru: Получаем случайное число от 1 до 100
 		randomInt, err := faker.RandomInt(1, 100)
 		if err != nil {
 			log.Printf("Failed to generate random number: %v", err)
@@ -156,19 +163,18 @@ func SeedUpload(count int) {
 	uploads := make([]upload.Upload, count)
 
 	for i := 0; i < count; i++ {
-		// Ограничиваем длину заголовка до 200 символов
+		// Limints length of description to 200 characters // ru: Ограничиваем длину описания до 200 символов
 		title := faker.Sentence()
 		if len(title) > 200 {
 			title = title[:200]
 		}
-
-		// Ограничиваем длину описания до 200 символов
+		// Limints length of description to 200 characters // ru: Ограничиваем длину описания до 200 символов
 		description := faker.Sentence()
 		if len(description) > 200 {
 			description = description[:200]
 		}
 
-		// Ограничиваем длину контента до 1000 символов
+		// Limints length of description to 1000 characters // ru: Ограничиваем длину контента до 1000 символов
 		content := faker.Paragraph()
 		if len(content) > 1000 {
 			content = content[:1000]
