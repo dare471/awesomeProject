@@ -1,11 +1,12 @@
 package service
 
 import (
+	"awesomeProject/internal/database"
 	"awesomeProject/internal/domain/model/user"
 	"errors"
-	"github.com/golang-jwt/jwt/v5"
 	"time"
-	"awesomeProject/internal/database"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 var SecretKey = "secret"
@@ -63,6 +64,10 @@ func (s *UserService) GetUserByID(id uint) (user.User, error) {
 	return s.userRepo.FindByID(id)
 }
 
+func (s *UserService) GetAll() ([]user.User, error) {
+	return s.userRepo.FindAll()
+}
+
 type CreateUserRequest struct {
 	Name     string `json:"name" binding:"required"`
 	Age      int    `json:"age" binding:"required,min=18"`
@@ -80,11 +85,16 @@ func (s *UserService) CreateUser(req CreateUserRequest) (user.User, error) {
 
 	// Создаем нового пользователя
 	newUser := &user.User{
-		Email:    req.Email,
-		Password: req.Password,
-		Name:     req.Name,
-		Age:      req.Age,
-		City:     req.City,
+		Email:         req.Email,
+		Password:      req.Password,
+		Name:          req.Name,
+		Age:           req.Age,
+		City:          req.City,
+		IsActive:      true,
+		IsActive_at:   time.Now(),
+		IsVerified:    true,
+		IsVerified_at: time.Now(),
+		IsDeleted:     false,
 	}
 
 	if err := s.userRepo.Create(newUser); err != nil {
@@ -101,4 +111,3 @@ func (s *UserService) CreateUser(req CreateUserRequest) (user.User, error) {
 // 	}
 // 	return user, nil
 // }
-

@@ -6,10 +6,11 @@ import (
 	"awesomeProject/internal/domain/model"
 	"awesomeProject/internal/domain/service"
 	_ "fmt"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -85,6 +86,17 @@ func main() {
 				"id":      idParam,
 				"message": "Authorized",
 				"data":    user,
+			})
+		})
+		protected.GET("/all", func(c *gin.Context) {
+			users, err := userService.GetAll()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{
+				"message": "All users",
+				"data":    users,
 			})
 		})
 		r.GET("/", func(c *gin.Context) {

@@ -4,12 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"log"
+
 	"gorm.io/gorm"
 )
 
 type Repository interface {
 	FindByEmail(email string) (User, error)
 	FindByID(id uint) (User, error)
+	FindAll() ([]User, error)
 	Create(user *User) error
 	UpdateToken(id uint, token string) error
 	UpdateRefreshToken(id uint, refreshToken string) error
@@ -38,7 +40,7 @@ func (r *RepositoryImpl) FindByEmail(email string) (User, error) {
 func (r *RepositoryImpl) FindByID(id uint) (User, error) {
 	var user User
 	log.Printf("Attempting to find user with ID: %d", id)
-	
+
 	// Проверяем соединение
 	if r.db == nil {
 		return user, fmt.Errorf("database connection is nil")
@@ -53,9 +55,15 @@ func (r *RepositoryImpl) FindByID(id uint) (User, error) {
 		log.Printf("Database error while finding user: %v", result.Error)
 		return user, result.Error
 	}
-	
+
 	log.Printf("Successfully found user: %+v", user)
 	return user, nil
+}
+
+func (r *RepositoryImpl) FindAll() ([]User, error) {
+	var users []User
+	result := r.db.Find(&users)
+	return users, result.Error
 }
 
 func (r *RepositoryImpl) UpdateToken(id uint, token string) error {

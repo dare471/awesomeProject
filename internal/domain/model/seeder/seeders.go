@@ -177,8 +177,8 @@ func SeedUpload(count int) {
 
 		// Limints length of description to 1000 characters // ru: Ограничиваем длину контента до 1000 символов
 		content := faker.Paragraph()
-		if len(content) > 1000 {
-			content = content[:1000]
+		if len(content) > 200 {
+			content = content[:200]
 		}
 
 		uploads[i] = upload.Upload{
