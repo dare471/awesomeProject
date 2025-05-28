@@ -2,12 +2,12 @@ package migrate
 
 import (
 	"awesomeProject/internal/database"
-	"awesomeProject/internal/domain/model/user"
 	"awesomeProject/internal/domain/model/news"
-	"awesomeProject/internal/domain/model/user_deleted"
-	"awesomeProject/internal/domain/model/upload"
 	"awesomeProject/internal/domain/model/role"
 	"awesomeProject/internal/domain/model/seeder"
+	"awesomeProject/internal/domain/model/upload"
+	"awesomeProject/internal/domain/model/user"
+	"awesomeProject/internal/domain/model/user_deleted"
 	"log"
 )
 
@@ -40,22 +40,24 @@ func Migrate() {
 	}
 	MigrateUpload(count)
 }
-///
+
+// /
 func MigrateUser(count int64) {
 	if err := database.DB.AutoMigrate(&user.User{}); err != nil {
 		log.Fatalf("Failed to migrate user model: %v", err)
-	}	
+	}
 	log.Println("Database models User migrated successfully")
 	seeder.SeedUsers(10)
 }
-///
+
+// /
 func MigrateRole(count int64) {
-	// Полностью удаляем таблицу ролей
+	//eng: Drop roles table //ru: Полностью удаляем таблицу ролей
 	if err := database.DB.Exec("DROP TABLE IF EXISTS roles_struct CASCADE;").Error; err != nil {
 		log.Printf("Failed to drop roles table: %v", err)
 	}
 
-	// Создаем таблицу ролей заново с явным указанием типов
+	//eng: Create roles table again with explicit types //ru: Создаем таблицу ролей заново с явным указанием типов
 	if err := database.DB.Exec(`
 		CREATE TABLE roles_struct (
 			id SERIAL PRIMARY KEY,
@@ -73,7 +75,8 @@ func MigrateRole(count int64) {
 	log.Println("Database models Role migrated successfully")
 	seeder.SeedRoles(3)
 }
-///
+
+// /
 func MigrateNews(count int64) {
 	if err := database.DB.AutoMigrate(&news.News{}); err != nil {
 		log.Fatalf("Failed to migrate news model: %v", err)
@@ -82,7 +85,8 @@ func MigrateNews(count int64) {
 	log.Println("Database models News migrated successfully")
 	seeder.SeedNews(5)
 }
-///
+
+// /
 func MigrateUserDeleted(count int64) {
 	if err := database.DB.AutoMigrate(&user_deleted.UserDeleted{}); err != nil {
 		log.Fatalf("Failed to migrate user_deleted model: %v", err)
@@ -91,7 +95,7 @@ func MigrateUserDeleted(count int64) {
 	log.Println("Database models UserDeleted migrated successfully")
 	seeder.SeedUserDeleted(3)
 }
-///
+
 func MigrateUpload(count int64) {
 	if err := database.DB.AutoMigrate(&upload.Upload{}); err != nil {
 		log.Fatalf("Failed to migrate upload model: %v", err)
@@ -101,14 +105,13 @@ func MigrateUpload(count int64) {
 	seeder.SeedUpload(5)
 }
 
-// TruncateTables очищает все таблицы в базе данных
+// eng: TruncateTables clears all tables in the database //ru: TruncateTables очищает все таблицы в базе данных
 func TruncateTables() {
 	log.Println("Truncating all tables...")
 
-	// Для PostgreSQL используем TRUNCATE
+	//eng: For PostgreSQL we use TRUNCATE //ru: Для PostgreSQL используем TRUNCATE
 	if err := database.DB.Exec("TRUNCATE TABLE users_struct, roles_struct, news_struct, users_deleted_struct, uploads_struct CASCADE;").Error; err != nil {
 		log.Printf("Failed to truncate tables: %v", err)
 	}
 	log.Println("All tables truncated successfully")
 }
-
