@@ -1,6 +1,10 @@
 package news
 
 import (
+	"errors"
+	"fmt"
+	"log"
+
 	"gorm.io/gorm"
 )
 
@@ -14,6 +18,10 @@ type Repository interface {
 
 type RepositoryImpl struct {
 	db *gorm.DB
+}
+
+func NewsRepository(db *gorm.DB) Repository {
+	return &RepositoryImpl{db: db}
 }
 
 func (r *RepositoryImpl) Create(news *News) error {
@@ -30,8 +38,21 @@ func (r *RepositoryImpl) FindAll() ([]News, error) {
 
 func (r *RepositoryImpl) FindByID(id uint) (News, error) {
 	var news News
-	if err := r.db.First(&news, id).Error; err != nil {
-		return News{}, err
+	log.Printf("Attempting to find news with ID: %d", id)
+
+	// Проверяем соединение
+	if r.db == nil {
+		return news, fmt.Errorf("database connection is nil")
+	}
+
+	result := r.db.First(&news, id)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			log.Printf("News not found with ID: %d", id)
+			return news, errors.New("news not found")
+		}
+		log.Printf("Database error while finding news: %v", result.Error)
+		return News{}, result.Error
 	}
 	return news, nil
 }

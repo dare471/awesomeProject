@@ -4,7 +4,8 @@ import (
 	"awesomeProject/internal/database"
 	"awesomeProject/internal/delivery/Api"
 	"awesomeProject/internal/domain/model"
-	"awesomeProject/internal/domain/service"
+	newsService "awesomeProject/internal/domain/service/news"
+	service "awesomeProject/internal/domain/service/user"
 	_ "fmt"
 	"log"
 	"net/http"
@@ -22,6 +23,7 @@ func main() {
 
 	// Создаем сервис
 	userService := service.NewUserService()
+	newsService := newsService.NewNewsService()
 
 	r := gin.Default()
 
@@ -102,6 +104,38 @@ func main() {
 		r.GET("/", func(c *gin.Context) {
 			c.JSON(200, gin.H{
 				"message": "Hello World",
+			})
+		})
+	}
+
+	protectedNews := r.Group("/protected/news",
+		Api.TokenAuthMiddleware())
+	{
+		protectedNews.GET("/all", func(c *gin.Context) {
+			news, err := newsService.GetAllNews()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{
+				"message": "All news",
+				"data":    news,
+			})
+		})
+		protectedNews.GET("/:id", func(c *gin.Context) {
+			id := c.Param("id")
+			idParam, err := strconv.ParseUint(id, 10, 32)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
+			}
+			news, err := newsService.GetNewsByID(uint(idParam))
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{
+				"message": "News",
+				"data":    news,
 			})
 		})
 	}

@@ -1,15 +1,16 @@
 package Api
 
 import (
-	"awesomeProject/internal/domain/service"
+	service "awesomeProject/internal/domain/service/user"
 	"awesomeProject/internal/usecase"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"log"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type AuthMiddleware struct {
@@ -27,7 +28,7 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		log.Printf("Received Authorization header: %s", authHeader)
-		
+
 		if authHeader == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header is required"})
 			c.Abort()
@@ -45,7 +46,7 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 
 		tokenString := parts[1]
 		log.Printf("Processing token: %s", tokenString)
-		
+
 		if tokenString == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Token is required"})
 			c.Abort()
@@ -105,7 +106,7 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 
 		// После успешного получения userID
 		log.Printf("Extracted userID from token: %d", userID)
-		
+
 		user, err := userService.GetUserByID(userID)
 		if err != nil {
 			log.Printf("Error getting user by ID: %v", err)
@@ -113,13 +114,12 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		
+
 		log.Printf("Successfully authenticated user: %+v", user)
 		c.Set("user", user)
 		c.Next()
 	}
 }
-
 
 func (a *AuthMiddleware) TokenValidatorMiddleWare() gin.HandlerFunc {
 	return func(c *gin.Context) {

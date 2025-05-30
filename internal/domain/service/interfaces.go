@@ -4,15 +4,16 @@ import (
 	"awesomeProject/internal/domain/model/news"
 	"awesomeProject/internal/domain/model/upload"
 	"awesomeProject/internal/domain/model/user"
+	userservice "awesomeProject/internal/domain/service/user"
 )
 
 // UserServiceInterface определяет контракт для операций с пользователями
 type UserServiceInterface interface {
 	// CreateUser создает нового пользователя
-	CreateUser(req CreateUserRequest) (user.User, error)
+	CreateUser(req userservice.CreateUserRequest) (user.User, error)
 
 	// Login выполняет аутентификацию пользователя
-	Login(email, password string) (AuthResponse, error)
+	Login(email, password string) (userservice.AuthResponse, error)
 
 	// GetUserByID получает пользователя по ID
 	GetUserByID(id uint) (user.User, error)
@@ -39,7 +40,7 @@ type AuthServiceInterface interface {
 	Authenticate(token string) (*user.User, error)
 
 	// RefreshToken обновляет токен доступа
-	RefreshToken(refreshToken string) (AuthResponse, error)
+	RefreshToken(refreshToken string) (userservice.AuthResponse, error)
 
 	// ValidateToken проверяет валидность токена
 	ValidateToken(token string) bool
