@@ -9,8 +9,10 @@ A Go web application built with Gin framework, following clean architecture prin
 ├── cmd/                    # Application entry points
 ├── internal/              # Private application code
 │   ├── delivery/         # API handlers and middleware
-│   ├── domain/           # Business logic and models
-│   ├── service/          # Service layer
+│   ├── domain/           # Business logic and models & Service layer
+│      ├──models           #models
+│      └──service         #service layer for endpoint | business logic
+│   ├── service/          #mind future: later update, move service layer from domain to service folder         
 │   ├── repository/       # Data access layer
 │   ├── database/         # Database configuration
 │   ├── usecase/          # Use case implementations
