@@ -40,7 +40,7 @@ A Go web application built with Gin framework, following clean architecture prin
 4. Set up your PostgreSQL database
 5. Run the application:
    ```bash
-   go run main.go
+   go run cmd/main.go
    ```
 
 The server will start on `localhost:8080`
