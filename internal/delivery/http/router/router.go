@@ -6,7 +6,6 @@ import (
 	Api "awesomeProject/internal/delivery/http/middleware"
 	newsService "awesomeProject/internal/domain/service/news"
 	service "awesomeProject/internal/domain/service/user"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -63,7 +62,6 @@ func SetupRouter() *gin.Engine {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
 				return
 			}
-
 			user, err := userService.GetUserByID(uint(id))
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{
@@ -126,10 +124,6 @@ func SetupRouter() *gin.Engine {
 				"data":    news,
 			})
 		})
-	}
-
-	if err := r.Run("localhost:8080"); err != nil {
-		log.Fatalf("Ошибка запуска сервера: %v", err)
 	}
 	return r
 }

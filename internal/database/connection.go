@@ -1,20 +1,37 @@
 package database
 
 import (
+	"fmt"
+	"log"
+
+	"os"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"log"
 )
 
 var DB *gorm.DB // Подключение к БД через GORM
 
+// getEnvWithDefault returns the value of the environment variable or a default value if not set
+func getEnvWithDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
 // InitDatabase создаёт соединение с базой данных
 func InitDatabase() {
 	log.Println("Initializing database connection...")
-	
-	dsn := "host=localhost user=laravel password=secret dbname=my_app_db port=5432 sslmode=disable TimeZone=UTC"
+	host := getEnvWithDefault("DB_HOST", "localhost")
+	user := getEnvWithDefault("DB_USER", "laravel")
+	password := getEnvWithDefault("DB_PASSWORD", "secret")
+	dbname := getEnvWithDefault("DB_NAME", "my_app_db")
+	port := getEnvWithDefault("DB_PORT", "5432")
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=UTC",
+		host, user, password, dbname, port)
 	log.Printf("Connecting to database with DSN: %s", dsn)
-	
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)

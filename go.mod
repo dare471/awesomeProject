@@ -9,6 +9,8 @@ require (
 	gorm.io/gorm v1.26.1
 )
 
+require github.com/joho/godotenv v1.5.1 // indirect
+
 require (
 	github.com/bxcodec/faker/v3 v3.8.1
 	github.com/bytedance/sonic v1.11.6 // indirect
@@ -39,7 +41,7 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	golang.org/x/arch v0.8.0 // indirect
-	golang.org/x/crypto v0.38.0 
+	golang.org/x/crypto v0.38.0
 	golang.org/x/net v0.40.0 // indirect
 	golang.org/x/sync v0.14.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
