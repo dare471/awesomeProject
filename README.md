@@ -46,7 +46,7 @@ The server will start on `localhost:8080`
 ## API Endpoints
 [Link share's Postman Collection](https://restless-flare-433229.postman.co/workspace/New-Team-Workspace~e0f4ed3a-5060-4895-bfb4-427ff650ec8b/collection/4175354-ae3c3b77-5c57-4cc1-9e53-ed22a5b8e7dc?action=share&creator=4175354)
 
-##User
+## User
 - `POST /login` - Login endpoint
   - Request body: `{ "email": "string", "password": "string" }`
   - Returns JWT token on success
@@ -57,7 +57,7 @@ The server will start on `localhost:8080`
   - Requires JWT token in Authorization header
   - Returns user data for the specified ID
 
-##News
+## News
 - `GET /protected/news/all` - Get all news data (protected route)
   - Requires JWT token in Authorization header
   - Returns all news data
