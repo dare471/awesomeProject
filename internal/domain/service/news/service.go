@@ -64,16 +64,19 @@ func (s *NewsService) GetAllNewsWithDetails(ctx context.Context) ([]NewsWithDeta
 
 			// Запускаем горутины для получения разных типов данных
 			go func() {
+				defer close(commentsChan)
 				// Здесь можно добавить реальную логику получения количества комментариев
 				commentsChan <- 0 // Заглушка
 			}()
 
 			go func() {
+				defer close(likesChan)
 				// Здесь можно добавить реальную логику получения количества лайков
 				likesChan <- 0 // Заглушка
 			}()
 
 			go func() {
+				defer close(updateChan)
 				// Получаем время последнего обновления
 				updateChan <- newsItem.UpdatedAt
 			}()

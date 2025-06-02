@@ -145,16 +145,19 @@ func (s *UserService) GetAllWithDetails(ctx context.Context) ([]UserWithDetails,
 
 			// Запускаем горутины для получения разных типов данных
 			go func() {
+				defer close(lastLoginChan)
 				// Здесь можно добавить реальную логику получения времени последнего входа
 				lastLoginChan <- time.Now() // Заглушка
 			}()
 
 			go func() {
+				defer close(loginCountChan)
 				// Здесь можно добавить реальную логику получения количества входов
 				loginCountChan <- 0 // Заглушка
 			}()
 
 			go func() {
+				defer close(sessionsChan)
 				// Здесь можно добавить реальную логику получения активных сессий
 				sessionsChan <- 0 // Заглушка
 			}()
