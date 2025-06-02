@@ -9,6 +9,7 @@ import (
 	"awesomeProject/internal/domain/model/user_deleted"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/bxcodec/faker/v3"
@@ -17,40 +18,53 @@ import (
 func SeedUsers(count int) {
 	log.Printf("Creating %d additional users...", count)
 
+	var wg sync.WaitGroup
 	users := make([]user.User, count)
+	errors := make(chan error, count)
 
+	// Создаем пользователей параллельно
 	for i := 0; i < count; i++ {
-		// Create a new user without using faker for ID
-		// Создаем нового пользователя без использования faker для ID
+		wg.Add(1)
+		go func(index int) {
+			defer wg.Done()
 
-		users[i] = user.User{
-			Name:       faker.Name(),
-			Age:        int(faker.RandomUnixTime() % 100),
-			City:       faker.Word(),
-			Email:      fmt.Sprintf("user%d@example.com", i+1),
-			Role:       "user",
-			IsActive:   true,
-			IsVerified: true,
-			IsDeleted:  false,
-		}
+			// Создаем нового пользователя
+			users[index] = user.User{
+				Name:       faker.Name(),
+				Age:        int(faker.RandomUnixTime() % 100),
+				City:       faker.Word(),
+				Email:      fmt.Sprintf("user%d@example.com", index+1),
+				Role:       "user",
+				IsActive:   true,
+				IsVerified: true,
+				IsDeleted:  false,
+			}
 
-		// Set password
-		// Устанавливаем пароль
-		hashedPassword, err := user.HashPassword("password123")
-		if err != nil {
-			log.Printf("Failed to hash password for user %d: %v", i, err)
-			continue
-		}
-		users[i].Password = hashedPassword
+			// Устанавливаем пароль
+			hashedPassword, err := user.HashPassword("password123")
+			if err != nil {
+				errors <- fmt.Errorf("failed to hash password for user %d: %v", index, err)
+				return
+			}
+			users[index].Password = hashedPassword
+
+			// Создаем пользователя в базе данных
+			if err := database.DB.Create(&users[index]).Error; err != nil {
+				errors <- fmt.Errorf("failed to create user %s: %v", users[index].Email, err)
+				return
+			}
+		}(i)
 	}
 
-	// Create a users one by one to avoid a problems ID
-	// Создаем пользователей по одному, чтобы избежать проблем с ID
+	// Запускаем горутину для обработки ошибок
+	go func() {
+		wg.Wait()
+		close(errors)
+	}()
 
-	for _, u := range users {
-		if err := database.DB.Create(&u).Error; err != nil {
-			log.Printf("Failed to create user %s: %v", u.Email, err)
-		}
+	// Обрабатываем ошибки
+	for err := range errors {
+		log.Printf("Error creating user: %v", err)
 	}
 
 	log.Printf("Successfully created users")
@@ -140,23 +154,33 @@ func SeedUserDeleted(count int) {
 	userDeleted := make([]user_deleted.UserDeleted, count)
 
 	for i := 0; i < count; i++ {
-		// Get random number from 1 to 100 // ru: Получаем случайное число от 1 до 100
-		randomInt, err := faker.RandomInt(1, 100)
-		if err != nil {
-			log.Printf("Failed to generate random number: %v", err)
-			continue
-		}
+		// Create a unique user ID for each deleted user
+		userID := uint(i + 1)
 
 		userDeleted[i] = user_deleted.UserDeleted{
-			UserID:    uint(randomInt[0]),
+			UserID:    userID,
 			DeletedAt: time.Now(),
+			User: user.User{
+				Name:          faker.Name(),
+				Age:           int(faker.RandomUnixTime() % 100),
+				City:          faker.Word(),
+				Email:         fmt.Sprintf("deleted_user_%d@example.com", i+1),
+				Password:      "deleted_user_password", // Inactive users don't need secure passwords
+				Role:          "deleted_user",
+				IsActive:      false,
+				IsActive_at:   time.Now(),
+				IsVerified:    false,
+				IsVerified_at: time.Now(),
+				IsDeleted:     true,
+			},
 		}
 
 		if err := database.DB.Create(&userDeleted[i]).Error; err != nil {
-			log.Printf("Failed to create user_deleted %d: %v", i, err)
+			log.Printf("Failed to create user_deleted %d: %v", i+1, err)
+			continue
 		}
+		log.Printf("Successfully created user_deleted %d", i+1)
 	}
-	log.Printf("Successfully created user_deleted")
 }
 
 func SeedUpload(count int) {

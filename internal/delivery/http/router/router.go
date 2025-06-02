@@ -1,20 +1,36 @@
 package router
 
 import (
+	"context"
+	"net/http"
+	"strconv"
+	"time"
+
 	"github.com/gin-gonic/gin"
 
 	Api "awesomeProject/internal/delivery/http/middleware"
 	newsService "awesomeProject/internal/domain/service/news"
 	service "awesomeProject/internal/domain/service/user"
-	"net/http"
-	"strconv"
+	"awesomeProject/internal/metrics"
 )
 
 func SetupRouter() *gin.Engine {
 
 	userService := service.NewUserService()
 	newsService := newsService.NewNewsService()
+
+	// Set release mode
+	gin.SetMode(gin.ReleaseMode)
+
 	r := gin.Default()
+	r.TrustedPlatform = "X-Forwarded-For"
+
+	// Добавляем middleware для метрик
+	r.Use(metrics.MetricsMiddleware())
+
+	// Запускаем сервер метрик
+	metrics.StartMetricsServer()
+
 	r.POST("/create/user", func(c *gin.Context) {
 		var req service.CreateUserRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -87,6 +103,21 @@ func SetupRouter() *gin.Engine {
 				"data":    users,
 			})
 		})
+		protected.GET("/all-with-details", func(c *gin.Context) {
+			// Создаем контекст с таймаутом
+			ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+			defer cancel()
+
+			users, err := userService.GetAllWithDetails(ctx)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{
+				"message": "All users with details",
+				"data":    users,
+			})
+		})
 		r.GET("/", func(c *gin.Context) {
 			c.JSON(200, gin.H{
 				"message": "Hello World",
@@ -108,6 +139,24 @@ func SetupRouter() *gin.Engine {
 				"data":    news,
 			})
 		})
+
+		// Новый эндпоинт для получения новостей с деталями
+		protectedNews.GET("/all-with-details", func(c *gin.Context) {
+			// Создаем контекст с таймаутом
+			ctx, cancel := context.WithTimeout(c.Request.Context(), 5*time.Second)
+			defer cancel()
+
+			news, err := newsService.GetAllNewsWithDetails(ctx)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{
+				"message": "All news with details",
+				"data":    news,
+			})
+		})
+
 		protectedNews.GET("/:id", func(c *gin.Context) {
 			id := c.Param("id")
 			idParam, err := strconv.ParseUint(id, 10, 32)

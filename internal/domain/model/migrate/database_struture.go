@@ -9,36 +9,75 @@ import (
 	"awesomeProject/internal/domain/model/user"
 	"awesomeProject/internal/domain/model/user_deleted"
 	"log"
+	"sync"
 )
 
 func Migrate() {
+	var wg sync.WaitGroup
 	var count int64
-	////
+
+	// Очищаем таблицы перед миграцией
 	TruncateTables()
-	if err := database.DB.AutoMigrate(&user.User{}); err != nil {
-		log.Fatalf("Failed to migrate user model: %v", err)
+
+	// Функция для выполнения миграции с обработкой ошибок
+	migrateWithError := func(fn func() error, modelName string) {
+		defer wg.Done()
+		if err := fn(); err != nil {
+			log.Printf("Failed to migrate %s model: %v", modelName, err)
+		}
 	}
-	MigrateUser(count)
-	////
-	if err := database.DB.AutoMigrate(&role.Role{}); err != nil {
-		log.Fatalf("Failed to migrate role model: %v", err)
-	}
-	MigrateRole(count)
-	////
-	if err := database.DB.AutoMigrate(&news.News{}); err != nil {
-		log.Fatalf("Failed to migrate news model: %v", err)
-	}
-	MigrateNews(count)
-	////
-	if err := database.DB.AutoMigrate(&user_deleted.UserDeleted{}); err != nil {
-		log.Fatalf("Failed to migrate user_deleted model: %v", err)
-	}
-	MigrateUserDeleted(count)
-	////
-	if err := database.DB.AutoMigrate(&upload.Upload{}); err != nil {
-		log.Fatalf("Failed to migrate upload model: %v", err)
-	}
-	MigrateUpload(count)
+
+	// Запускаем миграции параллельно
+	wg.Add(5)
+
+	// Миграция пользователей
+	go migrateWithError(func() error {
+		if err := database.DB.AutoMigrate(&user.User{}); err != nil {
+			return err
+		}
+		MigrateUser(count)
+		return nil
+	}, "user")
+
+	// Миграция ролей
+	go migrateWithError(func() error {
+		if err := database.DB.AutoMigrate(&role.Role{}); err != nil {
+			return err
+		}
+		MigrateRole(count)
+		return nil
+	}, "role")
+
+	// Миграция новостей
+	go migrateWithError(func() error {
+		if err := database.DB.AutoMigrate(&news.News{}); err != nil {
+			return err
+		}
+		MigrateNews(count)
+		return nil
+	}, "news")
+
+	// Миграция удаленных пользователей
+	go migrateWithError(func() error {
+		if err := database.DB.AutoMigrate(&user_deleted.UserDeleted{}); err != nil {
+			return err
+		}
+		MigrateUserDeleted(count)
+		return nil
+	}, "user_deleted")
+
+	// Миграция загрузок
+	go migrateWithError(func() error {
+		if err := database.DB.AutoMigrate(&upload.Upload{}); err != nil {
+			return err
+		}
+		MigrateUpload(count)
+		return nil
+	}, "upload")
+
+	// Ожидаем завершения всех миграций
+	wg.Wait()
+	log.Println("All migrations completed")
 }
 
 // /
